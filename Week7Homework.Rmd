@@ -1,0 +1,84 @@
+---
+title: "Week 7 Homework"
+author: "Maggie"
+date: "2024-02-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(spotifyr)
+```
+
+```{r}
+juditha <- get_track_audio_features(c("2M5b9YLAgFroqWzeaZf86e", "3DBKc4ioGnMQLlbGQcFDIO"))
+alla <- get_album_tracks("7oI0E3DdTbD85rhMg19GSU")
+gilberto <- get_artist_audio_features("gilberto gil")
+ecm <- get_playlist_audio_features("", "1zN4nK6oHMo2dei2WWPtSL")
+```
+
+```{r}
+playlist90 <- get_playlist_audio_features("", "37i9dQZF1DX6VDO8a6cQME")
+playlist00 <- get_playlist_audio_features("", "37i9dQZF1DWYmmr74INQlb")
+playlist10 <- get_playlist_audio_features("", "37i9dQZF1DWXbttAJcbphz")
+
+mixes <-
+  bind_rows(
+    playlist90 |> mutate(category = "1990s"),
+    playlist00 |> mutate(category = "2000s"),
+    playlist10 |> mutate(category = "2010s")
+      )
+```
+
+```{r}
+mixes_sorted <- mixes %>%
+  arrange(category, track.duration_ms)
+
+mixes_sorted <- mixes_sorted %>%
+  group_by(category) %>%
+  mutate(song_index = row_number())
+
+mixes_sorted <- mixes_sorted %>%
+  mutate(duration_seconds = track.duration_ms / 1000)
+
+
+ggplot(mixes_sorted, aes(x = song_index, y = duration_seconds, color = category)) +
+  geom_line() +
+  labs(x = "Song Index", y = "Duration (seconds)", title = "Song Durations in R&B Playlists by Era") +
+  theme_minimal()
+```
+
+```{r}
+mixes_sorted1 <- mixes %>%
+  arrange(category, track.album.release_date)
+
+ggplot(mixes_sorted1, aes(x = 1:nrow(mixes_sorted), y = duration_seconds, color = category)) +
+  geom_line() +
+  labs(x = "Song Index", y = "Duration (seconds)", title = "Song Durations in R&B Playlists by Era") +
+  theme_minimal()
+```
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
