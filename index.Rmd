@@ -17,18 +17,23 @@ library(compmus)
 ```
 
 
-### My first tab
+### Introduction
+Welcome to Maggie's Computational Musicology Dashboard! Hopefully, everything works!
 
+I want to introduce the corpus that I have compiled. My corpus consists of three playlists that are under the Rhythm and Blues (R&B) genre. I decided to pick R&B because it was one of my top most listened-to genres according to the end-of-the-year Spotify Wrapped. Additionally, I would like to learn more about the characteristics of the genre and its long, rich history. R&B is an interesting genre as it is common to see mixes with other popular genres like hip-hop, soul, jazz, and more. The playlists in my corpus differ in decades, the first playlist consists of the top 100 “most essential” R&B songs of the 1990s. The second and third playlists are for the decade 2000s and 2010s respectively. The 1990s playlist consists of 75 songs, the 2000s playlist consists of 100 songs and the 2010s playlist consists of 100 songs. The playlists were directly found and created by Spotify.
+
+
+### Week 8 Homework
 ```{r}
-wood <-
-  get_tidy_audio_analysis("6IQILcYkN2S2eSu5IHoPEH") |>
+theboyismine <-
+  get_tidy_audio_analysis("6sHsXIJoEN5JpdkGMQDJxt") |>
   select(segments) |>
   unnest(segments) |>
   select(start, duration, pitches)
 ```
 
 ```{r}
-wood |>
+theboyismine |>
   mutate(pitches = map(pitches, compmus_normalise, "euclidean")) |>
   compmus_gather_chroma() |> 
   ggplot(
@@ -40,14 +45,73 @@ wood |>
     )
   ) +
   geom_tile() +
-  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  labs(title = "The Boy Is Mine - Brandy and Monica", subtitle = "'I Love my '90s R&B' Playlist", x = "Time (s)", y = NULL, fill = "Magnitude") +
   theme_minimal() +
   scale_fill_viridis_c()
 ```
 
-***
-My side bar text
 
-### My second tab
+***
+This chromagram is made for a specific song in the 1990s playlist called "The Boy Is Mine" by Brandy and Monica. It is a very typical, well-known, and popular song in the R&B genre. In the chromagram, it is clear that the prominent and "loudest" note is  C# shown by the magnitude (also how yellow the row is). Following that, G# and F# are also very prominent. Also worth mentioning that A, B, E, and D# are also relatively high in magnitude. It all makes sense because all of these notes belong in the C# minor scale, which is also the key to this song. 
+
+I think it is super interesting to see that the first 24/25 seconds are quite empty compared to the rest of the song because only the main melody can be heard clearly and there are almost no other instruments other than some chimes. After the 25th second, the drums, background instruments, vocals, etc come in.
+
+
+### Week 7 Homework Plot 1
+
+```{r}
+playlist90 <- get_playlist_audio_features("", "37i9dQZF1DX6VDO8a6cQME")
+playlist00 <- get_playlist_audio_features("", "37i9dQZF1DWYmmr74INQlb")
+playlist10 <- get_playlist_audio_features("", "37i9dQZF1DWXbttAJcbphz")
+
+mixes <-
+  bind_rows(
+    playlist90 |> mutate(category = "1990s"),
+    playlist00 |> mutate(category = "2000s"),
+    playlist10 |> mutate(category = "2010s")
+      )
+```
+
+
+```{r}
+mixes_sorted <- mixes %>%
+  arrange(category, track.duration_ms)
+
+mixes_sorted <- mixes_sorted %>%
+  group_by(category) %>%
+  mutate(song_index = row_number())
+
+mixes_sorted <- mixes_sorted %>%
+  mutate(duration_seconds = track.duration_ms / 1000)
+
+
+ggplot(mixes_sorted, aes(x = song_index, y = duration_seconds, color = category)) +
+  geom_line() +
+  labs(x = "Song Index", y = "Duration (seconds)", title = "Song Durations in R&B Playlists by Era") +
+  theme_minimal()
+```
+
+***
+The first idea I wanted to explore through my corpus/playlists was looking at the change in duration of songs throughout each decade. Due to many reasons, one of them being the introduction of music streaming, songs are becoming shorter in terms of duration. Therefore, I decided to plot/visualize it based on the duration of the songs. Having recently become acquainted with R, I tried making the plots look presentable and clear. I felt that a line graph would be the most appropriate to use to visualize duration and change across time. Additionally, I decided to convert the duration from ms to seconds for clearer representation and assessment.
+
+Looking at the first line plot and comparing the shortest duration for each decade, it is not surprising to see that the 2010s playlists include songs with the shortest duration of less than 100 seconds, which is less than one minute and a half. Moreover, the 1990s playlist included the song with the longest duration out of the entire corpus, being over 400 seconds long (almost 500 seconds, around 8 minutes).
+
+
+### Week 7 Homework Plot 2
+```{r}
+mixes_sorted1 <- mixes %>%
+  arrange(category, track.album.release_date) %>%
+  mutate(duration_seconds = track.duration_ms/1000) %>%
+  mutate(song_index = row_number())
+
+ggplot(mixes_sorted1, aes(x = song_index, y = duration_seconds, color = category)) +
+  geom_line() +
+  labs(x = "Song Index", y = "Duration (seconds)", title = "Song Durations in R&B Playlists by Era") +
+  theme_minimal()
+```
+
+***
+In the second line plot, a connected line graph was used to visually depict the progression of song durations across different time periods. There is a clear downward trajectory and gradual decline as time goes by, which implies that the duration of songs is getting shorter over the years
+
 
 
