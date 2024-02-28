@@ -113,7 +113,7 @@ ggplot(mixes_sorted1, aes(x = song_index, y = duration_seconds, color = category
 
 In the second line plot, a connected line graph was used to visually depict the progression of song durations across different time periods. There is a clear downward trajectory and gradual decline as time goes by, which implies that the duration of songs is getting shorter over the years
 
-## Breakout 1: Avril 14
+### Breakout 1: Avril 14
 
 ```{r, echo = FALSE, message = FALSE}
 library(tidyverse)
@@ -168,7 +168,7 @@ bind_rows(
 
 This is two self-similarity matrices of uptownfunk by bruno mars (chroma and timbre)
 
-## Cepstrograms
+### Cepstrograms
 
 ```{r}
 uptownfunk <-
