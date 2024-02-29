@@ -69,8 +69,7 @@ bind_rows(
 
 ------------------------------------------------------------------------
 
-This is two self-similarity matrices of "Uptown Funk" by Mark Ronson and Bruno Mars (chroma and timbre). Chroma shows that there is (generally) 5 main sections of the song: Verse 1, chorus 1, verse 2, bridge and outro. 
-It is interesting to see the yellow line before each section, this is an indication of the prechorus, which has lower pitch than the chorus as it is msotly comprised of vocals and drums. 
+The two self-similarity matrices of "Uptown Funk" by Mark Ronson and Bruno Mars (chroma and timbre). I chose this song as it is a blend of multiple other genres other than R&B, such as funk, soul, jazz, and pop. Looking at chroma, there are around 7-8 sections. It is interesting to see the yellow sections (strips), this is an indication of the pre-chorus, which has a lower pitch than the chorus as it is mainly comprised of only vocals and drums. The change in instrumentation during the bridge (around min 2:50 or 170 seconds) can be seen in the timbre, making a big yellow cross.
 
 ### Week 9 - Cepstrogram
 
