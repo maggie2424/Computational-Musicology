@@ -16,6 +16,107 @@ library(spotifyr)
 library(compmus)
 ```
 
+### Week 9 Self-Similarity Matrices
+
+```{r, echo = FALSE, message = FALSE}
+library(tidyverse)
+library(spotifyr)
+library(compmus)
+uptownfunk <-
+  get_tidy_audio_analysis("32OlwWuMpZ6b0aN2RZOeMS") |>
+  compmus_align(bars, segments) |>
+  select(bars) |>
+  unnest(bars) |>
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "acentre", norm = "manhattan"
+      )
+  ) |>
+  mutate(
+    timbre =
+      map(segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  )
+bind_rows(
+  uptownfunk |>
+    compmus_self_similarity(pitches, "aitchison") |>
+    mutate(d = d / max(d), type = "Chroma"),
+  uptownfunk |>
+    compmus_self_similarity(timbre, "euclidean") |>
+    mutate(d = d / max(d), type = "Timbre")
+) |>
+  mutate() |>
+  ggplot(
+    aes(
+      x = xstart + xduration / 2,
+      width = xduration,
+      y = ystart + yduration / 2,
+      height = yduration,
+      fill = d
+    )
+  ) +
+  geom_tile() +
+  coord_fixed() +
+  facet_wrap(~type) +
+  scale_fill_viridis_c(guide = "none") +
+  theme_classic() +
+  labs(x = "", y = "")
+```
+
+------------------------------------------------------------------------
+
+This is two self-similarity matrices of uptownfunk by bruno mars (chroma and timbre)
+
+### Week 9 - Cepstrogram
+
+```{r}
+uptownfunk <-
+  get_tidy_audio_analysis("32OlwWuMpZ6b0aN2RZOeMS") |> # Change URI.
+  compmus_align(bars, segments) |>                     # Change `bars`
+  select(bars) |>                                      #   in all three
+  unnest(bars) |>                                      #   of these lines.
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "rms", norm = "euclidean"              # Change summary & norm.
+      )
+  ) |>
+  mutate(
+    timbre =
+      map(segments,
+        compmus_summarise, timbre,
+        method = "rms", norm = "euclidean"              # Change summary & norm.
+      )
+  )
+```
+
+```{r}
+uptownfunk |>
+  compmus_gather_timbre() |>
+  ggplot(
+    aes(
+      x = start + duration / 2,
+      width = duration,
+      y = basis,
+      fill = value
+    )
+  ) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  scale_fill_viridis_c() +                              
+  theme_classic()
+```
+
+------------------------------------------------------------------------
+
+Once again, using the song "Uptown Funk" by Mark Ronson and Bruno Mars, I created a cepstrogram just to see what kinds of patterns or information it may show. The first level usually represents loudness, while the second level represents brightness. In the first 20 seconds, there is a slightly higher magnitude for c04. Highly likely that it is due to the high-pitched guitar in the background of the introduction. Until around 60 seconds, there was not a lot going on, that may be because the main background instrumental did not begin yet. Starting from 58 seconds, the siren in the background together with the drums are used for building up to the beat drop, which is why you can see minimal magnitude there. The beat drops (rich instrumental begins) around 67 seconds, which is also represented in row c02 as it brightens up in yellow. I also see a correlation between the trumpets used in the song and the highest magnitude/brightest yellow in the cepstogram which makes sense as it usually represents brightness. Around 170 seconds, you can see a drop in c01 and c02, this is the start of the bridge where there is nothing but vocals and drums, then eventually the bass and other instruments up to the last chorus. 
+
+
 ### Introduction
 
 Welcome to Maggie's Computational Musicology Dashboard.
@@ -113,99 +214,6 @@ ggplot(mixes_sorted1, aes(x = song_index, y = duration_seconds, color = category
 
 In the second line plot, a connected line graph was used to visually depict the progression of song durations across different time periods. There is a clear downward trajectory and gradual decline as time goes by, which implies that the duration of songs is getting shorter over the years
 
-### Breakout 1: Avril 14
 
-```{r, echo = FALSE, message = FALSE}
-library(tidyverse)
-library(spotifyr)
-library(compmus)
-uptownfunk <-
-  get_tidy_audio_analysis("32OlwWuMpZ6b0aN2RZOeMS") |>
-  compmus_align(bars, segments) |>
-  select(bars) |>
-  unnest(bars) |>
-  mutate(
-    pitches =
-      map(segments,
-        compmus_summarise, pitches,
-        method = "acentre", norm = "manhattan"
-      )
-  ) |>
-  mutate(
-    timbre =
-      map(segments,
-        compmus_summarise, timbre,
-        method = "mean"
-      )
-  )
-bind_rows(
-  uptownfunk |>
-    compmus_self_similarity(pitches, "aitchison") |>
-    mutate(d = d / max(d), type = "Chroma"),
-  uptownfunk |>
-    compmus_self_similarity(timbre, "euclidean") |>
-    mutate(d = d / max(d), type = "Timbre")
-) |>
-  mutate() |>
-  ggplot(
-    aes(
-      x = xstart + xduration / 2,
-      width = xduration,
-      y = ystart + yduration / 2,
-      height = yduration,
-      fill = d
-    )
-  ) +
-  geom_tile() +
-  coord_fixed() +
-  facet_wrap(~type) +
-  scale_fill_viridis_c(guide = "none") +
-  theme_classic() +
-  labs(x = "", y = "")
-```
 
-------------------------------------------------------------------------
-
-This is two self-similarity matrices of uptownfunk by bruno mars (chroma and timbre)
-
-### Cepstrograms
-
-```{r}
-uptownfunk <-
-  get_tidy_audio_analysis("32OlwWuMpZ6b0aN2RZOeMS") |> # Change URI.
-  compmus_align(bars, segments) |>                     # Change `bars`
-  select(bars) |>                                      #   in all three
-  unnest(bars) |>                                      #   of these lines.
-  mutate(
-    pitches =
-      map(segments,
-        compmus_summarise, pitches,
-        method = "rms", norm = "euclidean"              # Change summary & norm.
-      )
-  ) |>
-  mutate(
-    timbre =
-      map(segments,
-        compmus_summarise, timbre,
-        method = "rms", norm = "euclidean"              # Change summary & norm.
-      )
-  )
-```
-
-```{r}
-uptownfunk |>
-  compmus_gather_timbre() |>
-  ggplot(
-    aes(
-      x = start + duration / 2,
-      width = duration,
-      y = basis,
-      fill = value
-    )
-  ) +
-  geom_tile() +
-  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
-  scale_fill_viridis_c() +                              
-  theme_classic()
-```
 
