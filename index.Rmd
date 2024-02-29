@@ -18,7 +18,7 @@ library(compmus)
 
 ### Week 9 Self-Similarity Matrices
 
-```{r, echo = FALSE, message = FALSE}
+```{r, echo = FALSE, message = FALSE, fig.width=8, fig.height=6}
 library(tidyverse)
 library(spotifyr)
 library(compmus)
@@ -69,7 +69,8 @@ bind_rows(
 
 ------------------------------------------------------------------------
 
-This is two self-similarity matrices of uptownfunk by bruno mars (chroma and timbre)
+This is two self-similarity matrices of "Uptown Funk" by Mark Ronson and Bruno Mars (chroma and timbre). Chroma shows that there is (generally) 5 main sections of the song: Verse 1, chorus 1, verse 2, bridge and outro. 
+It is interesting to see the yellow line before each section, this is an indication of the prechorus, which has lower pitch than the chorus as it is msotly comprised of vocals and drums. 
 
 ### Week 9 - Cepstrogram
 
@@ -114,7 +115,7 @@ uptownfunk |>
 
 ------------------------------------------------------------------------
 
-Once again, using the song "Uptown Funk" by Mark Ronson and Bruno Mars, I created a cepstrogram just to see what kinds of patterns or information it may show. The first level usually represents loudness, while the second level represents brightness. In the first 20 seconds, there is a slightly higher magnitude for c04. Highly likely that it is due to the high-pitched guitar in the background of the introduction. Until around 60 seconds, there was not a lot going on, that may be because the main background instrumental did not begin yet. Starting from 58 seconds, the siren in the background together with the drums are used for building up to the beat drop, which is why you can see minimal magnitude there. The beat drops (rich instrumental begins) around 67 seconds, which is also represented in row c02 as it brightens up in yellow. I also see a correlation between the trumpets used in the song and the highest magnitude/brightest yellow in the cepstogram which makes sense as it usually represents brightness. Around 170 seconds, you can see a drop in c01 and c02, this is the start of the bridge where there is nothing but vocals and drums, then eventually the bass and other instruments up to the last chorus. 
+Once again, using the song "Uptown Funk", I created a cepstrogram just to see what kinds of patterns or information it may show. In the first 20 seconds, there is a slightly higher magnitude for c04. Highly likely that it is due to the high-pitched guitar in the background of the introduction. From around 50 seconds, there is only the siren, drums, and vocals used for building up to the beat drop, which is why you can see minimal magnitude. The beat drops (rich instrumental begins) around 67 seconds, which is also represented in c02 as it brightens up in yellow. I also see a correlation between the trumpets used in the song and the highest magnitude/brightest yellow in the cepstogram. This makes sense as c02 usually represents brightness. Around 170 seconds, you can see a drop in c01 and c02, this is the start of the bridge where there is nothing but vocals and drums, and then eventually the bass and other instruments join for the last chorus.
 
 
 ### Introduction
@@ -172,48 +173,40 @@ mixes <-
       )
 ```
 
-```{r}
+```{r, echo=FALSE, message=FALSE, fig.width=12, fig.height=6}
+library(ggplot2)
+library(dplyr)
+library(patchwork)
+
 mixes_sorted <- mixes %>%
-  arrange(category, track.duration_ms)
-
-mixes_sorted <- mixes_sorted %>%
+  arrange(category, track.duration_ms) %>%
   group_by(category) %>%
-  mutate(song_index = row_number())
-
-mixes_sorted <- mixes_sorted %>%
+  mutate(song_index = row_number()) %>%
   mutate(duration_seconds = track.duration_ms / 1000)
 
-
-ggplot(mixes_sorted, aes(x = song_index, y = duration_seconds, color = category)) +
+p1 <- ggplot(mixes_sorted, aes(x = song_index, y = duration_seconds, color = category)) +
   geom_line() +
   labs(x = "Song Index", y = "Duration (seconds)", title = "Song Durations in R&B Playlists by Era") +
   theme_minimal()
+
+mixes_sorted1 <- mixes %>%
+  arrange(category, track.album.release_date) %>%
+  mutate(duration_seconds = track.duration_ms/1000, 
+         song_index = row_number())
+
+p2 <- ggplot(mixes_sorted1, aes(x = song_index, y = duration_seconds, color = category)) +
+  geom_line() +
+  geom_smooth(method = "lm", se = FALSE, color = "black", linewidth = 0.2) +  # Add a linear model trend line
+  labs(x = "Song Index", y = "Duration (seconds)", title = "Song Durations in R&B Playlists by Release Date") +
+  theme_minimal()
+
+p1 + p2
 ```
 
 ------------------------------------------------------------------------
 
-The first idea I wanted to explore through my corpus/playlists was looking at the change in duration of songs throughout each decade. Due to many reasons, one of them being the introduction of music streaming, songs are becoming shorter in terms of duration. Therefore, I decided to plot/visualize it based on the duration of the songs. Having recently become acquainted with R, I tried making the plots look presentable and clear. I felt that a line graph would be the most appropriate to use to visualize duration and change across time. Additionally, I decided to convert the duration from ms to seconds for clearer representation and assessment.
+Here, I am looking at the change in duration of songs throughout each decade. Due to many reasons, one of them being the introduction of music streaming, songs are becoming shorter in terms of duration. Therefore, I decided to plot/visualize it based on the duration of the songs. Having recently become acquainted with R, I tried making the plots look presentable and clear. I felt that a line graph would be the most appropriate to use to visualize duration and change across time. Additionally, I decided to convert the duration from ms to seconds for clearer representation and assessment.
 
 Looking at the first line plot and comparing the shortest duration for each decade, it is not surprising to see that the 2010s playlists include songs with the shortest duration of less than 100 seconds, which is less than one minute and a half. Moreover, the 1990s playlist included the song with the longest duration out of the entire corpus, being over 400 seconds long (almost 500 seconds, around 8 minutes).
 
-### Week 7 Homework Plot 2
-
-```{r}
-mixes_sorted1 <- mixes %>%
-  arrange(category, track.album.release_date) %>%
-  mutate(duration_seconds = track.duration_ms/1000) %>%
-  mutate(song_index = row_number())
-
-ggplot(mixes_sorted1, aes(x = song_index, y = duration_seconds, color = category)) +
-  geom_line() +
-  labs(x = "Song Index", y = "Duration (seconds)", title = "Song Durations in R&B Playlists by Era") +
-  theme_minimal()
-```
-
-------------------------------------------------------------------------
-
-In the second line plot, a connected line graph was used to visually depict the progression of song durations across different time periods. There is a clear downward trajectory and gradual decline as time goes by, which implies that the duration of songs is getting shorter over the years
-
-
-
-
+In the second line plot, a connected line graph was used to visually depict the progression of song durations across different time periods. The trend line shows a clear downward trajectory and gradual decline as time goes by, which implies that the duration of songs is getting shorter over the years

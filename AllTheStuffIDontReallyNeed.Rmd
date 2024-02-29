@@ -1,0 +1,46 @@
+---
+title: "Draft Stuff"
+author: "Maggie"
+date: "2024-02-29"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+#What am i trialing ? not sure
+
+
+### Week 7 Homework Plot 1
+
+```{r}
+playlist90 <- get_playlist_audio_features("", "37i9dQZF1DX6VDO8a6cQME")
+playlist00 <- get_playlist_audio_features("", "37i9dQZF1DWYmmr74INQlb")
+playlist10 <- get_playlist_audio_features("", "37i9dQZF1DWXbttAJcbphz")
+
+mixes <-
+  bind_rows(
+    playlist90 |> mutate(category = "1990s"),
+    playlist00 |> mutate(category = "2000s"),
+    playlist10 |> mutate(category = "2010s")
+      )
+```
+
+#My first plot
+```{r}
+mixes_sorted <- mixes %>%
+  arrange(category, track.duration_ms)
+
+mixes_sorted <- mixes_sorted %>%
+  group_by(category) %>%
+  mutate(song_index = row_number())
+
+mixes_sorted <- mixes_sorted %>%
+  mutate(duration_seconds = track.duration_ms / 1000)
+
+
+ggplot(mixes_sorted, aes(x = song_index, y = duration_seconds, color = category)) +
+  geom_line() +
+  labs(x = "Song Index", y = "Duration (seconds)", title = "Song Durations in R&B Playlists by Era") +
+  theme_minimal()
+```
