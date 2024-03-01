@@ -209,3 +209,77 @@ Here, I am looking at the change in duration of songs throughout each decade. Du
 Looking at the first line plot and comparing the shortest duration for each decade, it is not surprising to see that the 2010s playlists include songs with the shortest duration of less than 100 seconds, which is less than one minute and a half. Moreover, the 1990s playlist included the song with the longest duration out of the entire corpus, being over 400 seconds long (almost 500 seconds, around 8 minutes).
 
 In the second line plot, a connected line graph was used to visually depict the progression of song durations across different time periods. The trend line shows a clear downward trajectory and gradual decline as time goes by, which implies that the duration of songs is getting shorter over the years
+
+### Week 7 more experiments
+```{r}
+compare90vs10 <-
+  bind_rows(
+    playlist90 |> mutate(category = "1990s"),
+    playlist10 |> mutate(category = "2010s")
+  )
+```
+
+```{r}
+library(tibble)
+label_data <- tibble(
+  label = c("Remember the Time", "Session 32"),
+  category = c("1990s", "2010s"),
+  valence = c(0.795, 0.1170),
+  energy = c(0.921, 0.123),
+  nudge_x = c(-0.2, 0.02) 
+)
+
+compare90vs10 |>                    # Start with awards.
+  mutate(
+    mode = ifelse(mode == 0, "Minor", "Major")
+  ) |>
+  ggplot(                     # Set up the plot.
+    aes(
+      x = valence,
+      y = energy,
+      size = loudness,
+      colour = mode
+    )
+  ) +
+  geom_point() +              # Scatter plot.
+  geom_rug(linewidth = 0.1) + # Add 'fringes' to show data distribution.
+  geom_text(data = tibble(label = "Remember the Time",
+                          category = "1990s",
+                          valence = 0.795,
+                          energy = 0.921),
+            aes(x = valence, y = energy, label = label),
+            nudge_x = -0.6, 
+            colour = "black", size = 3, hjust = "left", vjust = "center")+
+  geom_text(data = tibble(label = "Session 32",
+                          category = "2010s",
+                          valence = 0.1170,
+                          energy = 0.123),
+            aes(x = valence, y = energy, label = label),
+            nudge_x = 0.025, # Slightly nudge "Session 32" to the right
+            colour = "black", size = 3, hjust = "left", vjust = "center")+
+  facet_wrap(~ category) +    # Separate charts per playlist.
+  scale_x_continuous(         # Fine-tune the x axis.
+    limits = c(0, 1),
+    breaks = c(0, 0.50, 1),   # Use grid-lines for quadrants only.
+    minor_breaks = NULL       # Remove 'minor' grid-lines.
+  ) +
+  scale_y_continuous(         # Fine-tune the y axis in the same way.
+    limits = c(0, 1),
+    breaks = c(0, 0.50, 1),
+    minor_breaks = NULL
+  ) +
+  scale_colour_brewer(        # Use the Color Brewer to choose a palette.
+    type = "qual",            # Qualitative set.
+    palette = "Paired"        # Name of the palette is 'Paired'.
+  ) +
+  scale_size_continuous(      # Fine-tune the sizes of each point.
+    trans = "exp",            # Use an exp transformation to emphasise loud.
+    guide = "none"            # Remove the legend for size.
+  ) +
+  theme_light() +             # Use a simpler theme.
+  labs(                       # Make the titles nice.
+    x = "Valence",
+    y = "Energy",
+    colour = "Mode"
+  )
+```
