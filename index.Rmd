@@ -80,7 +80,7 @@ chord_templates <-
 
 
 ```{r, echo = FALSE}
-get_tidy_audio_analysis("0W4NhJhcqKCqEP2GIpDCDq") |>
+get_tidy_audio_analysis("1z6WtY7X4HQJvzxC4UgkSf") |> # Love On Top
   compmus_align(bars, segments) |>
   select(bars) |> # you can also change to sections
   unnest(bars) |>
@@ -103,7 +103,8 @@ get_tidy_audio_analysis("0W4NhJhcqKCqEP2GIpDCDq") |>
 
 ------------------------------------------------------------------------
 
-Yellow indicating the bridge where the chords change because of a modulation 
+Another classic R&B song (in the 2010s playlist), "Love on Top" by Beyonce. You can see from around 180 seconds, there is a shift in the chords being used as all the way to the end of the song there is a series of modulations. There is a total of 4 modulations that go upward chromatically. 
+
 
 ### Week 10 Keygrams
 
@@ -226,7 +227,13 @@ rememberthetime |>
   labs(x = "Time (s)", y = "")
 ```
 
+------------------------------------------------------------------------
+
+This is a keygram of the song "Remember the Time" by Michael Jackson. Another very well known R&B song part of the 1990s playlist. I am not sure exactly how to dissect this. There is a yellow strip in the middle around the 130 seconds mark and that is around when the bridge begins.
+
+
 ### Week 10 Timbre Coefficients
+
 ```{r}
 play90s <-
   get_playlist_audio_features(
@@ -244,8 +251,8 @@ play10s <-
   add_audio_analysis()
 hello <-
   play90s |>
-  mutate(genre = "play90s") |>
-  bind_rows(play10s |> mutate(genre = "play10s"))
+  mutate(genre = "R&B 1990s") |>
+  bind_rows(play10s |> mutate(genre = "R&B 2010s"))
 ```
 
 ```{r}
@@ -269,6 +276,9 @@ hello |>
 #You can also do it with pitches instead of timbre here 
 ```
 
+------------------------------------------------------------------------
+
+I wanted to see the difference between my R&B playlists differing in era. Therefore, I chose the two playlists furthest away from each other (in terms of time). The dark purple color represents the R&B playlist of the 1990s and the yellow represents the 2010s. We can see that there is a noticeable difference in values for c02 (2010s is shorter) and c05 (2010s is longer and higher value). The remaining coefficients are relatively similar in shape. 
 
 ### Week 9 Self-Similarity Matrices
 
