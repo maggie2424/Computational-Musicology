@@ -1,9 +1,12 @@
 ---
 title: "Computational Musicology "
-author: "Maggie"
+author: "By Maggie Yang"
 output: 
   flexdashboard::flex_dashboard:
     storyboard: true
+    theme:
+      version: 4
+      primary: "#AC97D2"
 ---
 
 ```{r, eval = FALSE}
@@ -16,7 +19,10 @@ library(spotifyr)
 library(compmus)
 ```
 
-### Week 10 Chordograms
+Week 10 {.storyboard}
+=========================================
+    
+### Chordograms
 
 ```{r, results = 'hide'}
 library(tidyverse)
@@ -105,8 +111,7 @@ get_tidy_audio_analysis("1z6WtY7X4HQJvzxC4UgkSf") |> # Love On Top
 
 Another classic R&B song (in the 2010s playlist), "Love on Top" by Beyonce. You can see from around 180 seconds, there is a shift in the chords being used as all the way to the end of the song there is a series of modulations. There is a total of 4 modulations that go upward chromatically. 
 
-
-### Week 10 Keygrams
+### Keygrams
 
 ```{r}
 circshift <- function(v, n) {
@@ -232,7 +237,7 @@ rememberthetime |>
 This is a keygram of the song "Remember the Time" by Michael Jackson. Another very well known R&B song part of the 1990s playlist. I am not sure exactly how to dissect this. There is a yellow strip in the middle around the 130 seconds mark and that is around when the bridge begins.
 
 
-### Week 10 Timbre Coefficients
+### Timbre Coefficients
 
 ```{r}
 play90s <-
@@ -280,7 +285,72 @@ hello |>
 
 I wanted to see the difference between my R&B playlists differing in era. Therefore, I chose the two playlists furthest away from each other (in terms of time). The dark purple color represents the R&B playlist of the 1990s and the yellow represents the 2010s. We can see that there is a noticeable difference in values for c02 (2010s is shorter) and c05 (2010s is longer and higher value). The remaining coefficients are relatively similar in shape. 
 
-### Week 9 Self-Similarity Matrices
+
+Introduction {.storyboard}
+=========================================
+
+### Welcome
+
+```{r picture, echo = F, fig.cap = "Title", out.width = '50%'}
+knitr::include_graphics("CompMusicCorpus2.png")
+```
+
+------------------------------------------------------------------------
+
+Welcome to Maggie's Computational Musicology Dashboard.
+
+Firstly, I would like to introduce the corpus that I have chosen. My corpus consists of three playlists that are under the Rhythm and Blues (R&B) genre. I decided to pick R&B because it was one of my top most listened-to genres according to the end-of-the-year Spotify Wrapped. Additionally, I would like to learn more about the characteristics of the genre and its long, rich history. R&B is an interesting genre as it is common to see mixes with other popular genres like hip-hop, soul, jazz, and more. The playlists in my corpus differ in decades, the first playlist consists of the top 100 “most essential” R&B songs of the 1990s. The second and third playlists are for the decade 2000s and 2010s respectively. The 1990s playlist consists of 75 songs, the 2000s playlist consists of 100 songs and the 2010s playlist consists of 100 songs. The playlists were directly found on and created by Spotify.
+
+
+
+Week 9 {.storyboard}
+=========================================
+
+### Cepstrogram
+
+```{r}
+uptownfunk <-
+  get_tidy_audio_analysis("32OlwWuMpZ6b0aN2RZOeMS") |> # Change URI.
+  compmus_align(bars, segments) |>                     # Change `bars`
+  select(bars) |>                                      #   in all three
+  unnest(bars) |>                                      #   of these lines.
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "rms", norm = "euclidean"              # Change summary & norm.
+      )
+  ) |>
+  mutate(
+    timbre =
+      map(segments,
+        compmus_summarise, timbre,
+        method = "rms", norm = "euclidean"              # Change summary & norm.
+      )
+  )
+
+uptownfunk |>
+  compmus_gather_timbre() |>
+  ggplot(
+    aes(
+      x = start + duration / 2,
+      width = duration,
+      y = basis,
+      fill = value
+    )
+  ) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  scale_fill_viridis_c() +                              
+  theme_classic()
+```
+
+------------------------------------------------------------------------
+
+Using the song "Uptown Funk" again, I created a cepstrogram just to see what kinds of patterns or information it may show. In the first 20 seconds, there is a slightly higher magnitude for c04. Highly likely that it is due to the high-pitched guitar in the background of the introduction. From around 50 seconds, there is only the siren, drums, and vocals used for building up to the beat drop, which is why you can see minimal magnitude. The beat drops (rich instrumental begins) around 67 seconds, which is also represented in c02 as it brightens up in yellow. I also see a correlation between the trumpets used in the song and the highest magnitude/brightest yellow in the cepstogram. This makes sense as c02 usually represents brightness. Around 170 seconds, you can see a drop in c01 and c02, this is the start of the bridge where there is nothing but vocals and drums, and then eventually the bass and other instruments join for the last chorus.
+
+
+### Self-Similarity Matrices
 
 ```{r, echo = FALSE, message = FALSE, fig.width=8, fig.height=6}
 library(tidyverse)
@@ -335,60 +405,11 @@ bind_rows(
 
 The two self-similarity matrices of "Uptown Funk" by Mark Ronson and Bruno Mars (chroma and timbre). I chose this song as it is a blend of multiple other genres other than R&B, such as funk, soul, jazz, and pop. Looking at chroma, there are around 7-8 sections. It is interesting to see the yellow sections (strips), this is an indication of the pre-chorus, which has a lower pitch than the chorus as it is mainly comprised of only vocals and drums. The change in instrumentation during the bridge (around min 2:50 or 170 seconds) can be seen in the timbre, making a big yellow cross.
 
-### Week 9 - Cepstrogram
 
-```{r}
-uptownfunk <-
-  get_tidy_audio_analysis("32OlwWuMpZ6b0aN2RZOeMS") |> # Change URI.
-  compmus_align(bars, segments) |>                     # Change `bars`
-  select(bars) |>                                      #   in all three
-  unnest(bars) |>                                      #   of these lines.
-  mutate(
-    pitches =
-      map(segments,
-        compmus_summarise, pitches,
-        method = "rms", norm = "euclidean"              # Change summary & norm.
-      )
-  ) |>
-  mutate(
-    timbre =
-      map(segments,
-        compmus_summarise, timbre,
-        method = "rms", norm = "euclidean"              # Change summary & norm.
-      )
-  )
-```
+Week 8 {.storyboard}
+=========================================
 
-```{r}
-uptownfunk |>
-  compmus_gather_timbre() |>
-  ggplot(
-    aes(
-      x = start + duration / 2,
-      width = duration,
-      y = basis,
-      fill = value
-    )
-  ) +
-  geom_tile() +
-  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
-  scale_fill_viridis_c() +                              
-  theme_classic()
-```
-
-------------------------------------------------------------------------
-
-Once again, using the song "Uptown Funk", I created a cepstrogram just to see what kinds of patterns or information it may show. In the first 20 seconds, there is a slightly higher magnitude for c04. Highly likely that it is due to the high-pitched guitar in the background of the introduction. From around 50 seconds, there is only the siren, drums, and vocals used for building up to the beat drop, which is why you can see minimal magnitude. The beat drops (rich instrumental begins) around 67 seconds, which is also represented in c02 as it brightens up in yellow. I also see a correlation between the trumpets used in the song and the highest magnitude/brightest yellow in the cepstogram. This makes sense as c02 usually represents brightness. Around 170 seconds, you can see a drop in c01 and c02, this is the start of the bridge where there is nothing but vocals and drums, and then eventually the bass and other instruments join for the last chorus.
-
-
-### Introduction
-
-Welcome to Maggie's Computational Musicology Dashboard.
-
-Firstly, I would like to introduce the corpus that I have compiled. My corpus consists of three playlists that are under the Rhythm and Blues (R&B) genre. I decided to pick R&B because it was one of my top most listened-to genres according to the end-of-the-year Spotify Wrapped. Additionally, I would like to learn more about the characteristics of the genre and its long, rich history. R&B is an interesting genre as it is common to see mixes with other popular genres like hip-hop, soul, jazz, and more. The playlists in my corpus differ in decades, the first playlist consists of the top 100 “most essential” R&B songs of the 1990s. The second and third playlists are for the decade 2000s and 2010s respectively. The 1990s playlist consists of 75 songs, the 2000s playlist consists of 100 songs and the 2010s playlist consists of 100 songs. The playlists were directly found and created by Spotify.
-
-### Week 8 Homework
-
+### Chromagram
 ```{r}
 theboyismine <-
   get_tidy_audio_analysis("6sHsXIJoEN5JpdkGMQDJxt") |>
@@ -421,7 +442,11 @@ This chromagram is made for a specific song in the 1990s playlist called "The Bo
 
 I think it is super interesting to see that the first 24/25 seconds are quite empty compared to the rest of the song because only the main melody can be heard clearly and there are almost no other instruments other than some chimes. After the 25th second, the drums, background instruments, vocals, etc come in.
 
-### Week 7 Homework Plot 1
+
+Week 7 {.storyboard}
+=========================================
+
+### Duration of songs through the eras
 
 ```{r}
 playlist90 <- get_playlist_audio_features("", "37i9dQZF1DX6VDO8a6cQME")
@@ -474,7 +499,7 @@ Looking at the first line plot and comparing the shortest duration for each deca
 
 In the second line plot, a connected line graph was used to visually depict the progression of song durations across different time periods. The trend line shows a clear downward trajectory and gradual decline as time goes by, which implies that the duration of songs is getting shorter over the years
 
-### Week 7 more experiments
+### More Experiments
 ```{r}
 compare90vs10 <-
   bind_rows(
@@ -547,3 +572,5 @@ compare90vs10 |>                    # Start with awards.
     colour = "Mode"
   )
 ```
+
+
