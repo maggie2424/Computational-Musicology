@@ -19,6 +19,89 @@ library(spotifyr)
 library(compmus)
 ```
 
+
+Week 11 {.storyboard}
+=========================================
+    
+### Novelty Functions - Hold Me Down (Daniel Caeser)
+
+```{r}
+holdmedown <-
+  get_tidy_audio_analysis("1Mza2sr6tPhy6jjI3HB9fW") |>
+  select(segments) |>
+  unnest(segments)
+``` 
+
+
+```{r}
+holdmedown |>
+  mutate(loudness_max_time = start + loudness_max_time) |>
+  arrange(loudness_max_time) |>
+  mutate(delta_loudness = loudness_max - lag(loudness_max)) |>
+  ggplot(aes(x = loudness_max_time, y = pmax(0, delta_loudness))) +
+  geom_line() +
+  xlim(0, 30) +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "Novelty")
+```
+
+------------------------------------------------------------------------
+
+Still need to update this.
+
+
+### My Second Novelty Functions - Trip (Ella Mai)
+```{r}
+trip <-
+  get_tidy_audio_analysis("6CTWathupIiDs7U4InHnDA") |>
+  select(segments) |>
+  unnest(segments)
+``` 
+
+```{r}
+trip |>
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) |>
+  arrange(start) |>
+  mutate(pitches = map2(pitches, lag(pitches), `-`)) |>
+  slice(-1) |> 
+  compmus_gather_chroma() |> 
+  group_by(start, duration) |> 
+  summarise(novelty = sum(log1p(pmax(value, 0)))) |> 
+  ggplot(aes(x = start + duration / 2, y = novelty)) +
+  geom_line() +
+  xlim(0, 30) +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "Novelty")
+#spectral based, here we are not getting regular peaks. This is not very clear. Thus not a clear novelty function. 
+```
+
+------------------------------------------------------------------------
+
+Still need to update this.
+
+
+### Tempogram 1
+
+```{r}
+TripElla <- get_tidy_audio_analysis("6CTWathupIiDs7U4InHnDA")
+```
+
+```{r}
+TripElla |>
+  tempogram(window_size = 8, hop_size = 1, cyclic = FALSE) |>
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)") +
+  theme_classic()
+```
+
+------------------------------------------------------------------------
+
+Still need to update this.
+
+
+
 Week 10 {.storyboard}
 =========================================
     
@@ -409,7 +492,7 @@ The two self-similarity matrices of "Uptown Funk" by Mark Ronson and Bruno Mars 
 Week 8 {.storyboard}
 =========================================
 
-### Chromagram
+### Chromagram #1 - The Boy Is Mine (Brandy and Monica)
 ```{r}
 theboyismine <-
   get_tidy_audio_analysis("6sHsXIJoEN5JpdkGMQDJxt") |>
@@ -441,6 +524,39 @@ theboyismine |>
 This chromagram is made for a specific song in the 1990s playlist called "The Boy Is Mine" by Brandy and Monica. It is a very typical, well-known, and popular song in the R&B genre. In the chromagram, it is clear that the prominent and "loudest" note is C# shown by the magnitude (also how yellow the row is). Following that, G# and F# are also very prominent. Also worth mentioning that A, B, E, and D# are also relatively high in magnitude. It all makes sense because all of these notes belong in the C# minor scale, which is also the key to this song.
 
 I think it is super interesting to see that the first 24/25 seconds are quite empty compared to the rest of the song because only the main melody can be heard clearly and there are almost no other instruments other than some chimes. After the 25th second, the drums, background instruments, vocals, etc come in.
+
+
+### Chromagram #2 - Love on Top (Beyonce)
+```{r}
+loveontop <-
+  get_tidy_audio_analysis("1z6WtY7X4HQJvzxC4UgkSf") |> #Love On Top
+  select(segments) |>
+  unnest(segments) |>
+  select(start, duration, pitches)
+```
+
+```{r}
+loveontop |>
+  mutate(pitches = map(pitches, compmus_normalise, "euclidean")) |>
+  compmus_gather_chroma() |> 
+  ggplot(
+    aes(
+      x = start + duration / 2,
+      width = duration,
+      y = pitch_class,
+      fill = value
+    )
+  ) +
+  geom_tile() +
+  labs(title = "Love On Top - Beyonce", subtitle = "'I Love my '10s R&B' Playlist", x = "Time (s)", y = NULL, fill = "Magnitude") +
+  theme_minimal() +
+  scale_fill_viridis_c()
+```
+
+------------------------------------------------------------------------
+
+Still need to edit this
+
 
 
 Week 7 {.storyboard}
