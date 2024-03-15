@@ -22,7 +22,7 @@ library(compmus)
 
 Week 11 {.storyboard}
 =========================================
-    
+
 ### Novelty Functions - Hold Me Down (Daniel Caeser)
 
 ```{r}
@@ -47,7 +47,37 @@ holdmedown |>
 
 ------------------------------------------------------------------------
 
-Still need to update this.
+This graph shows the energy-based novelty function for the song ["Hold Me Down" by Daniel Caesar](https://open.spotify.com/track/1Mza2sr6tPhy6jjI3HB9fW?si=f550b8fb5caa4978). Looking at the graph (Half wave rectification), I would say that it does not show a very clear novelty function as the peaks are not very regular. The novelty values fluctuate around 0-7. There are some recurring peaks at around the value 5 (can be seen from 15-20 seconds), however, it is quite inconsistent.
+
+
+
+### Spectral Novelty Function - Hold Me Down 
+```{r}
+holdmedown2 <-
+  get_tidy_audio_analysis("1Mza2sr6tPhy6jjI3HB9fW") |>
+  select(segments) |>
+  unnest(segments)
+``` 
+
+```{r}
+holdmedown2 |>
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) |>
+  arrange(start) |>
+  mutate(pitches = map2(pitches, lag(pitches), `-`)) |>
+  slice(-1) |> 
+  compmus_gather_chroma() |> 
+  group_by(start, duration) |> 
+  summarise(novelty = sum(log1p(pmax(value, 0)))) |> 
+  ggplot(aes(x = start + duration / 2, y = novelty)) +
+  geom_line() +
+  xlim(0, 30) +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "Novelty")
+```
+
+------------------------------------------------------------------------
+
+I wanted to see how the visualization and the result would change if using a spectral novelty function instead for the same song (Hold Me Down). This visualization shows even more variability, which confirms the point made in the previous tab where there is not a very clear novelty function detected as we are not getting regular peaks. Moreover, there are some similar patterns that can be pointed out like around seconds 15-18, and 24-30 where peaks reoccurs.  
 
 
 ### My Second Novelty Functions - Trip (Ella Mai)
@@ -77,10 +107,10 @@ trip |>
 
 ------------------------------------------------------------------------
 
-Still need to update this.
+This is another spectral novelty function on the song ["Trip" by Ella Mai](https://open.spotify.com/track/6CTWathupIiDs7U4InHnDA?si=eb9073fbe6a0466b), a very well known and representative song for 2010s R&B as it was released in 2018 and was [top 11 on the billboard hot 100 chart in the US](https://www.billboard.com/artist/ella-mai/). The peaks are slightly more regular compared to the song "Hold Me Down" in the previous tabs. Meaning that there is a clearer novelty function. 
 
 
-### Tempogram 1
+### Tempogram 1 - "Trip" by Ella Mai
 
 ```{r}
 TripElla <- get_tidy_audio_analysis("6CTWathupIiDs7U4InHnDA")
@@ -98,7 +128,89 @@ TripElla |>
 
 ------------------------------------------------------------------------
 
-Still need to update this.
+Using the same song (Trip by Ella Mai), I created a tempogram. The clearest yellow line shows around the 320 BPM, which is four times the original BPM of the song (BPM). We can also see some tempo harmonics around 
+In between 
+
+
+### Tempogram 2 - "Lost" by Frank Ocean
+```{r}
+Lost <- get_tidy_audio_analysis("3GZD6HmiNUhxXYf8Gch723") # by Frank Ocean
+```
+
+```{r}
+Lost |>
+  tempogram(window_size = 8, hop_size = 1, cyclic = FALSE) |>
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)") +
+  theme_classic()
+```
+
+------------------------------------------------------------------------
+
+The song "Lost" by Frank Ocean is an example where there is one very strong and clear line representing tempo at around 240 BPM This is very interesting because the actual BPM of the song is 123 BPM The tempogram clearly shows the tempo harmonics, in this case, double time of 246 BPM There is a faint line below the main 246 line, it represents the actual BPM of the song. Additionally, we also see another tempo harmonic above at around 500 BPM, which is four times the original BPM (496 BPM). 
+
+
+###  Comparing Average Tempo of the 3 playlists
+```{r}
+playlist90 <- get_playlist_audio_features("", "37i9dQZF1DX6VDO8a6cQME")
+playlist00 <- get_playlist_audio_features("", "37i9dQZF1DWYmmr74INQlb")
+playlist10 <- get_playlist_audio_features("", "37i9dQZF1DWXbttAJcbphz")
+
+mixes <-
+  bind_rows(
+    playlist90 |> mutate(category = "1990s"),
+    playlist00 |> mutate(category = "2000s"),
+    playlist10 |> mutate(category = "2010s")
+      )
+```
+
+```{r}
+
+avg_tempo_by_decade <- mixes %>%
+  group_by(category) %>%
+  summarise(AverageTempo = mean(tempo, na.rm = TRUE))
+
+# Visualize the average tempo with a more carefully adjusted y-axis
+ggplot(avg_tempo_by_decade, aes(x = category, y = AverageTempo, fill = category)) +
+  geom_bar(stat = "identity", show.legend = FALSE) +
+  theme_minimal() +
+  scale_fill_brewer(palette = "Purples") +
+  labs(title = "Average Tempo Comparison Among Decades",
+       x = "Decade",
+       y = "Average Tempo (BPM)") +
+  geom_text(aes(label = round(AverageTempo, 1)), vjust = -0.5) +
+  coord_cartesian(ylim = c(110, 115))
+```
+
+------------------------------------------------------------------------
+
+This bar graph shows the comparison of the average tempo of all three playlists. It is clear that there is a slight increase in the average tempo throughout the years. There is a 0.7 difference between the 1990s and 2000s playlist. and a 0.9 difference between 2000s and 2010s playlist. A 1.6 difference between the two playlist furthest apart (90s and 2010s). 
+
+This may be due to multiple reasons: 
+1. R&B mixing with other genres, such as EDM, Pop or Hip-hop (which often features higher tempos)
+2. Listener preferences change over the decades and many may favor more upbeat tracks that are danceable (fitting for events, parties, workouts and other scenarios)
+3. Similar to the previous point, faster and upbeat songs are more likely to capture audience/listeners' attention. 
+These are some reasons that might explain the increase of song tempos/BPMs through the years. 
+
+
+
+
+Introduction {.storyboard}
+=========================================
+
+### Welcome
+
+```{r picture, echo = F, fig.cap = "Corpus Playlists", out.width = '50%'}
+knitr::include_graphics("CompMusicCorpus2.png")
+```
+
+------------------------------------------------------------------------
+
+Welcome to Maggie's Computational Musicology Dashboard.
+
+Firstly, I would like to introduce the corpus that I have chosen. My corpus consists of three playlists that are under the Rhythm and Blues (R&B) genre. I decided to pick R&B because it was one of my top most listened-to genres according to the end-of-the-year Spotify Wrapped. Additionally, I would like to learn more about the characteristics of the genre and its long, rich history. R&B is an interesting genre as it is common to see mixes with other popular genres like hip-hop, soul, jazz, and more. The playlists in my corpus differ in decades, the first playlist consists of the top 100 “most essential” R&B songs of the 1990s. The second and third playlists are for the decade 2000s and 2010s respectively. The 1990s playlist consists of 75 songs, the 2000s playlist consists of 100 songs and the 2010s playlist consists of 100 songs. The playlists were directly found on and created by Spotify.
 
 
 
@@ -369,23 +481,6 @@ hello |>
 I wanted to see the difference between my R&B playlists differing in era. Therefore, I chose the two playlists furthest away from each other (in terms of time). The dark purple color represents the R&B playlist of the 1990s and the yellow represents the 2010s. We can see that there is a noticeable difference in values for c02 (2010s is shorter) and c05 (2010s is longer and higher value). The remaining coefficients are relatively similar in shape. 
 
 
-Introduction {.storyboard}
-=========================================
-
-### Welcome
-
-```{r picture, echo = F, fig.cap = "Title", out.width = '50%'}
-knitr::include_graphics("CompMusicCorpus2.png")
-```
-
-------------------------------------------------------------------------
-
-Welcome to Maggie's Computational Musicology Dashboard.
-
-Firstly, I would like to introduce the corpus that I have chosen. My corpus consists of three playlists that are under the Rhythm and Blues (R&B) genre. I decided to pick R&B because it was one of my top most listened-to genres according to the end-of-the-year Spotify Wrapped. Additionally, I would like to learn more about the characteristics of the genre and its long, rich history. R&B is an interesting genre as it is common to see mixes with other popular genres like hip-hop, soul, jazz, and more. The playlists in my corpus differ in decades, the first playlist consists of the top 100 “most essential” R&B songs of the 1990s. The second and third playlists are for the decade 2000s and 2010s respectively. The 1990s playlist consists of 75 songs, the 2000s playlist consists of 100 songs and the 2010s playlist consists of 100 songs. The playlists were directly found on and created by Spotify.
-
-
-
 Week 9 {.storyboard}
 =========================================
 
@@ -488,6 +583,11 @@ bind_rows(
 
 The two self-similarity matrices of "Uptown Funk" by Mark Ronson and Bruno Mars (chroma and timbre). I chose this song as it is a blend of multiple other genres other than R&B, such as funk, soul, jazz, and pop. Looking at chroma, there are around 7-8 sections. It is interesting to see the yellow sections (strips), this is an indication of the pre-chorus, which has a lower pitch than the chorus as it is mainly comprised of only vocals and drums. The change in instrumentation during the bridge (around min 2:50 or 170 seconds) can be seen in the timbre, making a big yellow cross.
 
+```{r, echo=FALSE}
+library(htmltools)
+
+tags$iframe(src="https://open.spotify.com/embed/track/32OlwWuMpZ6b0aN2RZOeMS", width="300", height="80", frameborder="0", allowtransparency="true", allow="encrypted-media")
+```
 
 Week 8 {.storyboard}
 =========================================
@@ -525,6 +625,11 @@ This chromagram is made for a specific song in the 1990s playlist called "The Bo
 
 I think it is super interesting to see that the first 24/25 seconds are quite empty compared to the rest of the song because only the main melody can be heard clearly and there are almost no other instruments other than some chimes. After the 25th second, the drums, background instruments, vocals, etc come in.
 
+```{r, echo=FALSE}
+library(htmltools)
+
+tags$iframe(src="https://open.spotify.com/embed/track/6sHsXIJoEN5JpdkGMQDJxt", width="300", height="80", frameborder="0", allowtransparency="true", allow="encrypted-media")
+```
 
 ### Chromagram #2 - Love on Top (Beyonce)
 ```{r}
@@ -555,7 +660,13 @@ loveontop |>
 
 ------------------------------------------------------------------------
 
-Still need to edit this
+Still need to edit this.
+
+```{r, echo=FALSE}
+library(htmltools)
+
+tags$iframe(src="https://open.spotify.com/embed/track/1z6WtY7X4HQJvzxC4UgkSf", width="300", height="80", frameborder="0", allowtransparency="true", allow="encrypted-media")
+```
 
 
 
