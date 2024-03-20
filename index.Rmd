@@ -286,8 +286,10 @@ holdmedown |>
 
 This graph shows the energy-based novelty function for the song ["Hold Me Down" by Daniel Caesar](https://open.spotify.com/track/1Mza2sr6tPhy6jjI3HB9fW?si=f550b8fb5caa4978). Looking at the graph (Half wave rectification), I would say that it does not show a very clear novelty function as the peaks are not very regular. The novelty values fluctuate around 0-7. There are some recurring peaks at around the value 5 (can be seen from 15-20 seconds), however, it is quite inconsistent.
 
-<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/1Mza2sr6tPhy6jjI3HB9fW?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
 
+div(
+  HTML('<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/1Mza2sr6tPhy6jjI3HB9fW?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>')
+)
 
 ### Spectral Novelty Function - Hold Me Down 
 ```{r}
