@@ -49,6 +49,7 @@ holdmedown |>
 
 This graph shows the energy-based novelty function for the song ["Hold Me Down" by Daniel Caesar](https://open.spotify.com/track/1Mza2sr6tPhy6jjI3HB9fW?si=f550b8fb5caa4978). Looking at the graph (Half wave rectification), I would say that it does not show a very clear novelty function as the peaks are not very regular. The novelty values fluctuate around 0-7. There are some recurring peaks at around the value 5 (can be seen from 15-20 seconds), however, it is quite inconsistent.
 
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/1Mza2sr6tPhy6jjI3HB9fW?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
 
 
 ### Spectral Novelty Function - Hold Me Down 
@@ -178,6 +179,8 @@ knitr::include_graphics("CompMusicCorpus2.png")
 Welcome to Maggie's Computational Musicology Dashboard.
 
 Firstly, I would like to introduce the corpus that I have chosen. My corpus consists of three playlists that are under the Rhythm and Blues (R&B) genre. I decided to pick R&B because it was one of my top most listened-to genres according to the end-of-the-year Spotify Wrapped. Additionally, I would like to learn more about the characteristics of the genre and its long, rich history. R&B is an interesting genre as it is common to see mixes with other popular genres like hip-hop, soul, jazz, and more. The playlists in my corpus differ in decades, the first playlist consists of the top 100 “most essential” R&B songs of the 1990s. The second and third playlists are for the decade 2000s and 2010s respectively. The 1990s playlist consists of 75 songs, the 2000s playlist consists of 100 songs and the 2010s playlist consists of 100 songs. The playlists were directly found on and created by Spotify.
+
+<iframe style="border-radius:12px" src="https://open.spotify.com/embed/playlist/37i9dQZF1DX6VDO8a6cQME?utm_source=generator" width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
 
 
 Week 10 {.storyboard}
