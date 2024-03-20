@@ -19,6 +19,243 @@ library(spotifyr)
 library(compmus)
 ```
 
+Week 12 {.storyboard}
+=========================================
+
+### Heat Map 1- "Playlist 2010s" 
+
+```{r, results = 'hide'}
+library(tidyverse)
+library(tidymodels)
+library(ggdendro)
+library(heatmaply)
+library(spotifyr)
+library(compmus)
+
+get_conf_mat <- function(fit) {
+  outcome <- .get_tune_outcome_names(fit)
+  fit |> 
+    collect_predictions() |> 
+    conf_mat(truth = outcome, estimate = .pred_class)
+}  
+
+get_pr <- function(fit) {
+  fit |> 
+    conf_mat_resampled() |> 
+    group_by(Prediction) |> mutate(precision = Freq / sum(Freq)) |> 
+    group_by(Truth) |> mutate(recall = Freq / sum(Freq)) |> 
+    ungroup() |> filter(Prediction == Truth) |> 
+    select(class = Prediction, precision, recall)
+}  
+```
+
+```{r}
+playlist10 <- #Heat map 3
+  get_playlist_audio_features("playlist10", "1A7aGWMcW4V6XcUgXNvEqc") |>
+  add_audio_analysis() |>
+  mutate(
+    segments = map2(segments, key, compmus_c_transpose),
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  ) |>
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) |>
+  mutate_at(vars(pitches, timbre), map, bind_rows) |>
+  unnest(cols = c(pitches, timbre))
+```
+
+```{r}
+playlist10_juice <- 
+  recipe(
+    track.name ~ #Used for prediction: right side is what you use to predict it
+      danceability +
+      energy +
+      loudness +
+      speechiness +
+      acousticness +
+      instrumentalness +
+      liveness +
+      valence +
+      tempo +
+      duration,
+    data = playlist10 
+  ) |>
+  step_center(all_predictors()) |> 
+  step_scale(all_predictors()) |> 
+  prep(playlist10 |> mutate(track.name = str_trunc(track.name, 40))) |>
+  juice() |> 
+  column_to_rownames("track.name")
+```
+
+```{r}
+playlist10_dist <- dist(playlist10_juice, method = "euclidean")
+#computes distances
+```
+```{r}
+heatmaply(
+  playlist10_juice,
+  hclustfun = hclust,
+  hclust_method = "average",  # Change for single, average, or complete linkage.
+  dist_method = "euclidean"
+)
+```
+
+------------------------------------------------------------------------
+
+Yet to be completed:
+So to make sure the heat map is clearly represented, I shortened the playlists because 100 songs would not be able to appear on the heat map all at the same time. The shortened playlist consists of the first 30 songs in the R&B 1990s playlist.
+
+Interesting points to look into the 3 songs: C U Girl, Girl With the Tattoo, Best Part (feat. HER). All three have similar levels of instrumentalness, acousticness, liveness and danceability.  
+
+Also interesting to see how similar "Best Part" and "Get You" is since they are both from the same album, both songs by Daniel Caesar and both songs have a collaboration with a female artist. These two songs have similar instrumentalness, liveness, tempo, valence, speechiness. However, they do differ in terms of energy, acousticness, loudness and dancability. And in terms of duration, "Get You" is longer compared to "Best Part"
+
+
+### Heat Map 2
+
+```{r}
+playlist00 <-
+  get_playlist_audio_features("playlist00", "1l0EfQETJ1cwGldKXtfNRy") |>
+  add_audio_analysis() |>
+  mutate(
+    segments = map2(segments, key, compmus_c_transpose),
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  ) |>
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) |>
+  mutate_at(vars(pitches, timbre), map, bind_rows) |>
+  unnest(cols = c(pitches, timbre))
+```
+
+```{r}
+playlist00_juice <- 
+  recipe(
+    track.name ~ #Used for prediction: right side is what you use to predict it
+      danceability +
+      energy +
+      loudness +
+      speechiness +
+      acousticness +
+      instrumentalness +
+      liveness +
+      valence +
+      tempo +
+      duration,
+    data = playlist00 
+  ) |>
+  step_center(all_predictors()) |> #Center in scale - z score 
+  step_scale(all_predictors()) |> 
+  prep(playlist00 |> mutate(track.name = str_trunc(track.name, 40))) |>
+  juice() |> 
+  column_to_rownames("track.name")
+```
+
+```{r}
+playlist00_dist <- dist(playlist00_juice, method = "euclidean")
+#computes distances
+```
+```{r}
+heatmaply(
+  playlist00_juice,
+  hclustfun = hclust,
+  hclust_method = "average",  # Change for single, average, or complete linkage.
+  dist_method = "euclidean"
+)
+```
+
+------------------------------------------------------------------------
+
+Yet to be completed - 
+Similar to the other heat map. Playlist shortened, this playlist consist of the first 30 songs in the original R&B 2000s playlist. 
+
+Interesting to see here is that the instrumentalness is pretty much the same for all songs in the playlist . 
+
+
+### Hierarchical clustering
+
+```{r}
+playlist90 <-
+  get_playlist_audio_features("playlist90", "0yBBzdnMvPB48TXE7DdFZH") |>
+  add_audio_analysis() |>
+  mutate(
+    segments = map2(segments, key, compmus_c_transpose),
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  ) |>
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) |>
+  mutate_at(vars(pitches, timbre), map, bind_rows) |>
+  unnest(cols = c(pitches, timbre))
+```
+
+```{r}
+playlist90_juice <- 
+  recipe(
+    track.name ~ #Used for prediction: right side is what you use to predict it
+      danceability +
+      energy +
+      loudness +
+      speechiness +
+      acousticness +
+      instrumentalness +
+      liveness +
+      valence +
+      tempo +
+      duration,
+    data = playlist90 
+  ) |>
+  step_center(all_predictors()) |> #Center in scale - z score 
+  step_scale(all_predictors()) |> # 
+  # step_range(all_predictors()) |>
+  #this is the smallest value and largest value as 0 and 1
+  #forced 0-1 scale 
+  prep(playlist90 |> mutate(track.name = str_trunc(track.name, 40))) |>
+  juice() |> 
+  column_to_rownames("track.name")
+```
+
+```{r}
+playlist90_dist <- dist(playlist90_juice, method = "euclidean")
+#computes distances
+```
+
+```{r}
+playlist90_dist |> 
+  hclust(method = "average") |> # Try single, average, and complete. Can change
+  dendro_data() |>
+  ggdendrogram() #Making the dendrogram! 
+```
+
+------------------------------------------------------------------------
+
+Description yet to be completed. This diagram is made with a smaller playlist (the first 30 songs of 1990s playlist). 
+
+Clearly we can see that the two most similar songs are "No Scrubs" and "Return of the Mack" according to the diagram. And I guess you can also say that "Like a Tattoo" is the most different compared to all the songs in the playlist.
+
 
 Week 11 {.storyboard}
 =========================================
